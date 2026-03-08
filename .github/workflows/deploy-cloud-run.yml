@@ -1,0 +1,103 @@
+name: Deploy to Cloud Run
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
+  REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY }}
+  IMAGE: bens-buds
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Validate required CI variables and secrets
+        env:
+          DISCORD_APPLICATION_ID: ${{ vars.DISCORD_APPLICATION_ID }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          required=(PROJECT_ID REGION SERVICE REPOSITORY DISCORD_APPLICATION_ID DISCORD_BOT_TOKEN GCP_SERVICE_ACCOUNT_JSON)
+          for key in "${required[@]}"; do
+            if [[ -z "${!key:-}" ]]; then
+              echo "Missing required value: $key"
+              exit 1
+            fi
+          done
+
+      - name: Configure Artifact Registry auth
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Build and push container image
+        env:
+          SHA_TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE}:${SHA_TAG}"
+          docker build -t "${IMAGE_URI}" .
+          docker push "${IMAGE_URI}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> "$GITHUB_ENV"
+
+      - name: Build Cloud Run env file
+        env:
+          DISCORD_APPLICATION_ID: ${{ vars.DISCORD_APPLICATION_ID }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          PROMPT_FILE_PATH: ${{ vars.PROMPT_FILE_PATH }}
+        run: |
+          set -euo pipefail
+          SA_JSON_COMPACT="$(printf '%s' "$GCP_SERVICE_ACCOUNT_JSON" | jq -c .)"
+          echo "::add-mask::$SA_JSON_COMPACT"
+
+          {
+            echo "GCP_PROJECT_ID=${PROJECT_ID}"
+            echo "GCP_LOCATION=${REGION}"
+            echo "GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}"
+            echo "DISCORD_APPLICATION_ID=${DISCORD_APPLICATION_ID}"
+            echo "DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}"
+            echo "GCP_SERVICE_ACCOUNT_JSON=${SA_JSON_COMPACT}"
+            echo "PROMPT_FILE_PATH=${PROMPT_FILE_PATH:-prompts/system/alt-character-coach.txt}"
+            echo "LOG_LEVEL=${LOG_LEVEL:-info}"
+            echo "PORT=8080"
+          } > cloudrun.env
+
+      - name: Deploy to Cloud Run
+        run: |
+          set -euo pipefail
+          gcloud run deploy "${SERVICE}" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --platform managed \
+            --image "${IMAGE_URI}" \
+            --env-vars-file cloudrun.env \
+            --quiet
+
+      - name: Clean up env file
+        if: always()
+        run: rm -f cloudrun.env
