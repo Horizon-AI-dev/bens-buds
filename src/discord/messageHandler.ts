@@ -9,6 +9,8 @@ export type ReplyGenerator = (input: {
 const FALLBACK_REPLY =
   "I hit a temporary issue generating a response. Please try again in a few seconds.";
 
+const DISCORD_MESSAGE_MAX_LENGTH = 2000;
+
 const BEN_DISCORD_ID = "jelly309";
 
 function isBenCaller(message: Message<boolean>): boolean {
@@ -53,10 +55,48 @@ function formatReplyPromptForCaller(turns: ConversationTurn[], userMessage: stri
   }
 
   return [
-    "Caller identity: This message is from Ben (Discord ID jelly309).",
+    //"Caller identity: This message is from Ben (Discord ID jelly309).",
+    "Caller identity: This message is from Ben (Discord ID merlinfloyd).",
     "Reply directly to Ben and address him by name when natural.",
+    "Now that you are speaking to Ben your tone becomes super excited and you really want to discuss his alt choice very enthusiastically!",
     baseContext
   ].join("\n\n");
+}
+
+function splitDiscordMessage(content: string, maxLength = DISCORD_MESSAGE_MAX_LENGTH): string[] {
+  if (content.length <= maxLength) {
+    return [content];
+  }
+
+  const chunks: string[] = [];
+  let remaining = content;
+
+  while (remaining.length > 0) {
+    if (remaining.length <= maxLength) {
+      chunks.push(remaining);
+      break;
+    }
+
+    const candidate = remaining.slice(0, maxLength);
+    const splitAt =
+      candidate.lastIndexOf("\n\n") >= Math.floor(maxLength * 0.4)
+        ? candidate.lastIndexOf("\n\n")
+        : candidate.lastIndexOf(" ");
+
+    const cutIndex = splitAt > 0 ? splitAt : maxLength;
+    const nextChunk = remaining.slice(0, cutIndex).trim();
+
+    if (nextChunk.length === 0) {
+      chunks.push(remaining.slice(0, maxLength));
+      remaining = remaining.slice(maxLength).trimStart();
+      continue;
+    }
+
+    chunks.push(nextChunk);
+    remaining = remaining.slice(cutIndex).trimStart();
+  }
+
+  return chunks;
 }
 
 export async function handleMentionMessage(
@@ -88,7 +128,12 @@ export async function handleMentionMessage(
       userMessage: promptUserMessage
     });
     const finalReply = callerIsBen ? `<@${message.author.id}> ${reply}` : reply;
-    await message.reply(finalReply);
+    const replyChunks = splitDiscordMessage(finalReply);
+
+    for (const chunk of replyChunks) {
+      await message.reply(chunk);
+    }
+
     conversationMemory.addTurn(message.channelId, userMessage, reply);
   } catch (error) {
     console.error("[error] Failed to generate reply", error);
