@@ -1,7 +1,7 @@
 {
   "name": "bens-buds-dev",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
-  "overrideCommand": false,
+  "overrideCommand": true,
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
   "privileged": true,
@@ -13,13 +13,7 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22"
     },
-    "ghcr.io/devcontainers/features/bun:1": {
-      "version": "1.2.5"
-    },
     "ghcr.io/devcontainers/features/terraform:1": {
-      "version": "latest"
-    },
-    "ghcr.io/devcontainers/features/google-cloud-cli:1": {
       "version": "latest"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {
@@ -45,5 +39,5 @@
       ]
     }
   },
-  "postCreateCommand": "bash -lc 'bun install; bun add -g next@latest; bun --version; node --version; terraform -version; gcloud --version; docker --version'"
+  "postCreateCommand": "bash -lc 'set -e; if ! command -v bun >/dev/null 2>&1; then curl -fsSL https://bun.sh/install | bash; fi; export BUN_INSTALL=\"$HOME/.bun\"; export PATH=\"$BUN_INSTALL/bin:$PATH\"; if ! command -v gcloud >/dev/null 2>&1; then sudo apt-get update; sudo apt-get install -y apt-transport-https ca-certificates gnupg curl; curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg; echo \"deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main\" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list >/dev/null; sudo apt-get update; sudo apt-get install -y google-cloud-cli; fi; bun --version; bun install; bun add -g next@latest; node --version; terraform -version; gcloud --version; docker --version'"
 }
