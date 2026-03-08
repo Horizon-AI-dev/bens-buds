@@ -23,6 +23,9 @@
   "containerEnv": {
     "NEXT_TELEMETRY_DISABLED": "1"
   },
+  "remoteEnv": {
+    "PATH": "/home/vscode/.bun/bin:${containerEnv:PATH}"
+  },
   "forwardPorts": [
     3000,
     8080
@@ -39,5 +42,5 @@
       ]
     }
   },
-  "postCreateCommand": "bash -lc 'set -e; if ! command -v bun >/dev/null 2>&1; then curl -fsSL https://bun.sh/install | bash; fi; export BUN_INSTALL=\"$HOME/.bun\"; export PATH=\"$BUN_INSTALL/bin:$PATH\"; if ! command -v gcloud >/dev/null 2>&1; then sudo apt-get update; sudo apt-get install -y apt-transport-https ca-certificates gnupg curl; curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg; echo \"deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main\" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list >/dev/null; sudo apt-get update; sudo apt-get install -y google-cloud-cli; fi; bun --version; bun install; bun add -g next@latest; node --version; terraform -version; gcloud --version; docker --version'"
+  "postCreateCommand": "bash -lc 'set -e; export DEBIAN_FRONTEND=noninteractive; if ! command -v bun >/dev/null 2>&1; then curl -fsSL https://bun.sh/install | bash; fi; if ! command -v gcloud >/dev/null 2>&1; then sudo apt-get update; sudo apt-get install -y apt-transport-https ca-certificates gnupg curl; if [ ! -f /usr/share/keyrings/cloud.google.gpg ]; then curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg; fi; echo \"deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main\" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list >/dev/null; sudo apt-get update; sudo apt-get install -y google-cloud-cli; fi; /home/vscode/.bun/bin/bun --version; cd /workspaces/bens-buds; /home/vscode/.bun/bin/bun install; /home/vscode/.bun/bin/bun add -g next@latest; node --version; terraform -version; gcloud --version; docker --version'"
 }
