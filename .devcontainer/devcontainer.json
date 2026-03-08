@@ -1,0 +1,49 @@
+{
+  "name": "bens-buds-dev",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "overrideCommand": false,
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+  "privileged": true,
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/devcontainers/features/bun:1": {
+      "version": "1.2.5"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/google-cloud-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    }
+  },
+  "containerEnv": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "forwardPorts": [
+    3000,
+    8080
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "oven.bun-vscode",
+        "ms-azuretools.vscode-docker",
+        "hashicorp.terraform",
+        "googlecloudtools.cloudcode",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "postCreateCommand": "bash -lc 'bun install; bun add -g next@latest; bun --version; node --version; terraform -version; gcloud --version; docker --version'"
+}
