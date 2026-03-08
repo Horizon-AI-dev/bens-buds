@@ -9,6 +9,7 @@ type GenerateReplyInput = {
 type VertexClientOptions = {
   timeoutMs?: number;
   maxRetries?: number;
+  serviceAccountJson?: string | null;
 };
 
 const DEFAULT_TIMEOUT_MS = 12000;
@@ -67,6 +68,21 @@ export class VertexClient {
     this.model = config.geminiModel;
     this.timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxRetries = options?.maxRetries ?? DEFAULT_MAX_RETRIES;
+
+    const serviceAccountJson = options?.serviceAccountJson?.trim();
+    if (serviceAccountJson) {
+      const credentials = JSON.parse(serviceAccountJson) as object;
+      this.vertexAI = new VertexAI({
+        project: config.gcpProjectId,
+        location: config.gcpLocation,
+        googleAuthOptions: {
+          credentials,
+          scopes: ["https://www.googleapis.com/auth/cloud-platform"]
+        }
+      });
+      return;
+    }
+
     this.vertexAI = new VertexAI({
       project: config.gcpProjectId,
       location: config.gcpLocation

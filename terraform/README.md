@@ -4,6 +4,7 @@ This stack provisions baseline infrastructure for Ben's Buds:
 
 - Required GCP APIs.
 - Runtime service account for Cloud Run.
+- Runtime service account key (JSON) stored in Secret Manager.
 - Artifact Registry Docker repository.
 - Secret Manager access binding for Discord token retrieval.
 
@@ -43,6 +44,8 @@ Common optional variables:
 - `discord_token_secret_id` (default `discord-bot-token`)
 - `discord_token_secret_version` (default `latest`)
 - `enable_discord_secret_iam_binding` (default `false`)
+- `service_account_json_secret_id` (default `gcp-service-account-json`)
+- `service_account_json_secret_version` (default `latest`)
 
 ## Example tfvars
 
@@ -55,6 +58,8 @@ artifact_registry_repository = "bens-buds"
 discord_token_secret_id     = "discord-bot-token"
 discord_token_secret_version = "latest"
 enable_discord_secret_iam_binding = false
+service_account_json_secret_id    = "gcp-service-account-json"
+service_account_json_secret_version = "latest"
 ```
 
 When Checkpoint C is complete and the secret exists, set:
@@ -91,6 +96,11 @@ Use output values in your deploy workflow for:
 - Region (`deploy_region`)
 - Runtime service account (`runtime_service_account_email`)
 - Secret reference (`discord_token_secret_reference`)
+- Service account JSON secret reference (`service_account_json_secret_reference`)
+
+Application runtime usage:
+
+- Set `GCP_SERVICE_ACCOUNT_JSON_SECRET` to `service_account_json_secret_reference` if you want app-level explicit credential loading from Secret Manager.
 
 ## Gate reminder
 

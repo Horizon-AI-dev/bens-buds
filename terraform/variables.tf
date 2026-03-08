@@ -51,6 +51,18 @@ variable "enable_discord_secret_iam_binding" {
   default     = false
 }
 
+variable "service_account_json_secret_id" {
+  description = "Secret Manager secret ID that stores runtime service account JSON credentials."
+  type        = string
+  default     = "gcp-service-account-json"
+}
+
+variable "service_account_json_secret_version" {
+  description = "Secret version label used in references for runtime service account JSON secret."
+  type        = string
+  default     = "latest"
+}
+
 variable "google_access_token" {
   description = "Optional OAuth2 access token for Google provider auth (useful when ADC is not configured)."
   type        = string

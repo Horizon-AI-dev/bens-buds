@@ -22,6 +22,11 @@ output "discord_token_secret_reference" {
   value       = local.discord_token_secret_version_ref
 }
 
+output "service_account_json_secret_reference" {
+  description = "Secret Manager version path to set as GCP_SERVICE_ACCOUNT_JSON_SECRET when needed."
+  value       = local.service_account_json_secret_version_ref
+}
+
 output "deploy_region" {
   description = "Region GHA should deploy Cloud Run service into."
   value       = var.region

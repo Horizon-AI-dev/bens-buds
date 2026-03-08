@@ -12,6 +12,8 @@ export type RuntimeConfig = {
   discordApplicationId: string;
   discordBotToken: string | null;
   discordBotTokenSecret: string | null;
+  gcpServiceAccountJson: string | null;
+  gcpServiceAccountJsonSecret: string | null;
 };
 
 function getLogLevel(value: string | undefined): RuntimeConfig["logLevel"] {
@@ -40,6 +42,8 @@ export function loadConfig(): RuntimeConfig {
     geminiModel,
     discordApplicationId: applicationId,
     discordBotToken: process.env.DISCORD_BOT_TOKEN ?? null,
-    discordBotTokenSecret: process.env.DISCORD_BOT_TOKEN_SECRET ?? null
+    discordBotTokenSecret: process.env.DISCORD_BOT_TOKEN_SECRET ?? null,
+    gcpServiceAccountJson: process.env.GCP_SERVICE_ACCOUNT_JSON ?? null,
+    gcpServiceAccountJsonSecret: process.env.GCP_SERVICE_ACCOUNT_JSON_SECRET ?? null
   };
 }

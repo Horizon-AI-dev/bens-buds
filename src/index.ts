@@ -8,7 +8,18 @@ import { readSecretVersion } from "./secrets/secretManager.js";
 
 const config = loadConfig();
 const systemPrompt = loadSystemPrompt(config.promptFilePath);
-const vertexClient = new VertexClient(config);
+
+async function resolveVertexServiceAccountJson(): Promise<string | null> {
+  if (config.gcpServiceAccountJson) {
+    return config.gcpServiceAccountJson;
+  }
+
+  if (config.gcpServiceAccountJsonSecret) {
+    return readSecretVersion(config.gcpServiceAccountJsonSecret);
+  }
+
+  return null;
+}
 
 async function resolveDiscordToken(): Promise<string> {
   if (config.discordBotToken) {
@@ -50,6 +61,8 @@ client.on(Events.MessageCreate, async (message: Message<boolean>) => {
 });
 
 const healthServer = startHealthServer(config.port);
+const vertexServiceAccountJson = await resolveVertexServiceAccountJson();
+const vertexClient = new VertexClient(config, { serviceAccountJson: vertexServiceAccountJson });
 const token = await resolveDiscordToken();
 
 client.login(token).catch((error: unknown) => {

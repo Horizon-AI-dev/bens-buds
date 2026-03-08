@@ -54,8 +54,10 @@ Do not continue to cloud deployment slices until you explicitly confirm each che
 
 - Secrets: store in GCP Secret Manager and resolve at runtime.
    - Current required secret: Discord bot token.
+   - Optional runtime secret: service account JSON (`GCP_SERVICE_ACCOUNT_JSON_SECRET`).
 - Non-secrets: configure as environment variables on the container/service.
    - `GCP_PROJECT_ID`, `GCP_LOCATION`, `GEMINI_MODEL`, `DISCORD_APPLICATION_ID`, `PROMPT_FILE_PATH`, `LOG_LEVEL`, `PORT`.
+   - Optional local override: `GCP_SERVICE_ACCOUNT_JSON`.
 
 ## Local development with Bun
 
@@ -79,6 +81,7 @@ Do not continue to cloud deployment slices until you explicitly confirm each che
 
 Local runtime note:
 - If `DISCORD_BOT_TOKEN` is not set, startup expects `DISCORD_BOT_TOKEN_SECRET` and active GCP credentials.
+- Vertex auth precedence is: `GCP_SERVICE_ACCOUNT_JSON` -> `GCP_SERVICE_ACCOUNT_JSON_SECRET` -> ADC.
 
 ## Prompt editing
 
