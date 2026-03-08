@@ -12,6 +12,9 @@ This stack provisions baseline infrastructure for Ben's Buds:
 This stack does **not** deploy the Cloud Run application revision or image.
 GitHub Actions handles build/push/deploy in Slice 7.
 
+It now also syncs selected outputs into GitHub Actions repository variables/secrets
+using the GitHub provider.
+
 ## Prerequisites
 
 1. `Checkpoint C complete` is required before applying this stack.
@@ -50,6 +53,30 @@ Common optional variables:
 - `enable_discord_secret_iam_binding` (default `false`)
 - `service_account_json_secret_id` (default `gcp-service-account-json`)
 - `service_account_json_secret_version` (default `latest`)
+- `github_owner` (default `Horizon-AI-dev`)
+- `github_repository` (default `bens-buds`)
+- `github_token` (recommended via `TF_VAR_github_token` or `GITHUB_TOKEN` env var)
+- `discord_bot_token_plaintext` (optional; if set, syncs `DISCORD_BOT_TOKEN` to GitHub Actions secret)
+
+## GitHub Actions sync (managed by Terraform)
+
+On apply, Terraform manages these GitHub Actions **variables**:
+
+- `GCP_PROJECT_ID`
+- `GCP_REGION`
+- `CLOUD_RUN_SERVICE`
+- `ARTIFACT_REGISTRY_REPOSITORY`
+- `RUNTIME_SERVICE_ACCOUNT_EMAIL`
+- `DISCORD_BOT_TOKEN_SECRET`
+- `GCP_SERVICE_ACCOUNT_JSON_SECRET`
+
+And these GitHub Actions **secrets**:
+
+- `GCP_SERVICE_ACCOUNT_JSON` (from the Terraform-created runtime service account key JSON)
+- `DISCORD_BOT_TOKEN` (only if `discord_bot_token_plaintext` is provided)
+
+`RUNTIME_SERVICE_ACCOUNT_EMAIL` remains required for this repository's deploy workflow
+because `gcloud run deploy` passes `--service-account "$RUNTIME_SERVICE_ACCOUNT_EMAIL"`.
 
 ## Example tfvars
 

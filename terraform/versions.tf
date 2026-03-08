@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 6.0"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
+    }
   }
 }
 
@@ -14,4 +18,9 @@ provider "google" {
   region       = var.region
   access_token = var.google_access_token
   credentials  = var.google_credentials_json
+}
+
+provider "github" {
+  owner = var.github_owner
+  token = var.github_token
 }

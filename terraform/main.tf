@@ -10,6 +10,15 @@ locals {
 
   discord_token_secret_version_ref        = "projects/${var.project_id}/secrets/${var.discord_token_secret_id}/versions/${var.discord_token_secret_version}"
   service_account_json_secret_version_ref = "projects/${var.project_id}/secrets/${var.service_account_json_secret_id}/versions/${var.service_account_json_secret_version}"
+
+  github_actions_variables = {
+    GCP_PROJECT_ID                  = var.project_id
+    GCP_REGION                      = var.region
+    CLOUD_RUN_SERVICE               = var.service_name
+    ARTIFACT_REGISTRY_REPOSITORY    = var.artifact_registry_repository
+    DISCORD_BOT_TOKEN_SECRET        = local.discord_token_secret_version_ref
+    GCP_SERVICE_ACCOUNT_JSON_SECRET = local.service_account_json_secret_version_ref
+  }
 }
 
 resource "google_project_service" "required" {
@@ -106,4 +115,31 @@ resource "google_project_iam_member" "runtime_artifact_registry_writer" {
   member  = "serviceAccount:${google_service_account.runtime.email}"
 
   depends_on = [google_project_service.required]
+}
+
+resource "github_actions_variable" "ci" {
+  for_each = merge(
+    local.github_actions_variables,
+    {
+      RUNTIME_SERVICE_ACCOUNT_EMAIL = google_service_account.runtime.email
+    }
+  )
+
+  repository    = var.github_repository
+  variable_name = each.key
+  value         = each.value
+}
+
+resource "github_actions_secret" "gcp_service_account_json" {
+  repository      = var.github_repository
+  secret_name     = "GCP_SERVICE_ACCOUNT_JSON"
+  plaintext_value = base64decode(google_service_account_key.runtime_json.private_key)
+}
+
+resource "github_actions_secret" "discord_bot_token" {
+  count = var.discord_bot_token_plaintext == null ? 0 : 1
+
+  repository      = var.github_repository
+  secret_name     = "DISCORD_BOT_TOKEN"
+  plaintext_value = var.discord_bot_token_plaintext
 }

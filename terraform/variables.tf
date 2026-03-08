@@ -76,3 +76,29 @@ variable "google_credentials_json" {
   default     = null
   sensitive   = true
 }
+
+variable "github_owner" {
+  description = "GitHub owner/org for the repository where Actions secrets and variables are managed."
+  type        = string
+  default     = "Horizon-AI-dev"
+}
+
+variable "github_repository" {
+  description = "GitHub repository name where Actions secrets and variables are managed."
+  type        = string
+  default     = "bens-buds"
+}
+
+variable "github_token" {
+  description = "GitHub token with repo administration permissions for managing Actions secrets and variables."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "discord_bot_token_plaintext" {
+  description = "Optional plaintext Discord bot token to sync into GitHub Actions secret DISCORD_BOT_TOKEN."
+  type        = string
+  default     = null
+  sensitive   = true
+}
