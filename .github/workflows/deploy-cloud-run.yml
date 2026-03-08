@@ -83,7 +83,6 @@ jobs:
             echo "GCP_SERVICE_ACCOUNT_JSON=${SA_JSON_COMPACT}"
             echo "PROMPT_FILE_PATH=${PROMPT_FILE_PATH:-prompts/system/alt-character-coach.txt}"
             echo "LOG_LEVEL=${LOG_LEVEL:-info}"
-            echo "PORT=8080"
           } > cloudrun.env
 
       - name: Deploy to Cloud Run
