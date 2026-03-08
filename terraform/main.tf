@@ -117,6 +117,14 @@ resource "google_project_iam_member" "runtime_artifact_registry_writer" {
   depends_on = [google_project_service.required]
 }
 
+resource "google_service_account_iam_member" "runtime_self_act_as" {
+  service_account_id = google_service_account.runtime.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.runtime.email}"
+
+  depends_on = [google_project_service.required]
+}
+
 resource "github_actions_variable" "ci" {
   for_each = merge(
     local.github_actions_variables,
