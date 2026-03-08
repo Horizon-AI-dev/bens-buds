@@ -12,8 +12,9 @@ type VertexClientOptions = {
   serviceAccountJson?: string | null;
 };
 
-const DEFAULT_TIMEOUT_MS = 12000;
-const DEFAULT_MAX_RETRIES = 2;
+const DEFAULT_TIMEOUT_MS = 30000;
+const DEFAULT_MAX_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 1200;
 
 function toMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -51,6 +52,12 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
         clearTimeout(timer);
         reject(error);
       });
+  });
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
 }
 
@@ -132,6 +139,9 @@ export class VertexClient {
         if (attempt >= this.maxRetries || !isRetryableError(error)) {
           break;
         }
+
+        const delayMs = RETRY_BASE_DELAY_MS * Math.pow(2, attempt);
+        await sleep(delayMs);
       }
 
       attempt += 1;
