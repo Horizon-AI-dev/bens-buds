@@ -4,16 +4,21 @@ Discord bot for helping Ben choose an alt character.
 
 ## Slice status
 
-This repo currently implements Slice 2:
+Completed:
 - Bun + TypeScript Discord bot.
 - Bot only responds to `@mentions`.
-- Deterministic prompt-driven response (no Vertex integration yet).
+- Vertex AI response generation via Gemini model on Vertex.
 - System prompt is editable at `prompts/system/alt-character-coach.txt`.
+- Runtime Secret Manager token retrieval via `DISCORD_BOT_TOKEN_SECRET`.
+- Health-only HTTP endpoint at `/healthz` for Cloud Run checks.
+- Multi-stage, non-root Docker runtime (`Dockerfile`).
+- Terraform baseline stack under `terraform/` for API enablement, IAM, Artifact Registry, and secret-access bindings.
 
-This repo now also includes Slice 3 runtime config plumbing:
-- Secret Manager token retrieval at runtime via `DISCORD_BOT_TOKEN_SECRET`.
-- Local development fallback via `DISCORD_BOT_TOKEN`.
-- Non-secret parameters read from environment variables.
+Pending:
+- Manual completion of Checkpoint C confirmation.
+- Manual Terraform apply confirmation.
+- Slice 7 CI deploy workflow (blocked until Terraform apply is confirmed).
+- Final docs polish pass.
 
 ## Prerequisites (human steps)
 
@@ -38,6 +43,10 @@ This repo now also includes Slice 3 runtime config plumbing:
    - Secret `discord-bot-token` created in GCP Secret Manager.
    - Runtime identity has `roles/secretmanager.secretAccessor`.
    - You can provide `DISCORD_BOT_TOKEN_SECRET` as a full secret version path.
+4. Terraform apply checkpoint (required before CI deploy automation):
+   - `terraform init/plan/apply` has been run successfully from `terraform/`.
+   - Cloud Run service, Artifact Registry repo, and IAM bindings were verified.
+   - You confirm completion with: `Terraform apply complete`.
 
 Do not continue to cloud deployment slices until you explicitly confirm each checkpoint is complete.
 
@@ -68,6 +77,9 @@ Do not continue to cloud deployment slices until you explicitly confirm each che
    bun run dev
    ```
 
+Local runtime note:
+- If `DISCORD_BOT_TOKEN` is not set, startup expects `DISCORD_BOT_TOKEN_SECRET` and active GCP credentials.
+
 ## Prompt editing
 
 - Edit `prompts/system/alt-character-coach.txt` to change bot guidance.
@@ -92,7 +104,57 @@ Do not continue to cloud deployment slices until you explicitly confirm each che
      --role="roles/secretmanager.secretAccessor"
    ```
 
+## Container runtime (Slice 5)
+
+Build image:
+
+```bash
+docker build -t bens-buds:local .
+```
+
+Run locally:
+
+```bash
+docker run --rm -p 8080:8080 \
+   -e DISCORD_BOT_TOKEN="<token-for-local-only>" \
+   -e GCP_PROJECT_ID="<project-id>" \
+   -e GCP_LOCATION="us-central1" \
+   -e GEMINI_MODEL="gemini-3.0-flash" \
+   bens-buds:local
+```
+
+Health check:
+
+```bash
+curl http://localhost:8080/healthz
+```
+
+## Terraform baseline (Slice 6)
+
+Terraform stack lives in `terraform/`.
+
+Runbook:
+
+```bash
+cd terraform
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan -out=tfplan
+terraform apply tfplan
+```
+
+Detailed variable guidance and post-apply checks are in `terraform/README.md`.
+
+Terraform intentionally does not deploy Cloud Run revisions. GHA handles image build/push and service deployment.
+
+## Pause and resume protocol
+
+- To continue from Checkpoint C gate: `Checkpoint C complete`
+- To continue from Terraform apply gate: `Terraform apply complete`
+
 ## Validation
 
-- Mention the bot in a channel: it should reply.
+- Mention the bot in a channel: it should reply with Gemini output.
 - Send a non-mention message: it should not reply.
+- Hit `GET /healthz`: returns `200` with `{ "status": "ok" }`.
