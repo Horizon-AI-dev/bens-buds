@@ -89,6 +89,12 @@ variable "github_repository" {
   default     = "bens-buds"
 }
 
+variable "manage_github_actions_settings" {
+  description = "Whether Terraform should manage GitHub Actions variables and secrets."
+  type        = bool
+  default     = true
+}
+
 variable "github_token" {
   description = "GitHub token with repo administration permissions for managing Actions secrets and variables."
   type        = string

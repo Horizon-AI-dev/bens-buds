@@ -55,8 +55,30 @@ Common optional variables:
 - `service_account_json_secret_version` (default `latest`)
 - `github_owner` (default `Horizon-AI-dev`)
 - `github_repository` (default `bens-buds`)
-- `github_token` (recommended via `TF_VAR_github_token` or `GITHUB_TOKEN` env var)
+- `manage_github_actions_settings` (default `true`)
+- `github_token` (optional; can also be provided via `GITHUB_TOKEN` or `GH_TOKEN` env var)
 - `discord_bot_token_plaintext` (optional; if set, syncs `DISCORD_BOT_TOKEN` to GitHub Actions secret)
+
+If `manage_github_actions_settings=true`, authenticate the GitHub provider before apply.
+You can either set `TF_VAR_github_token` or rely on `GITHUB_TOKEN`/`GH_TOKEN`.
+
+Example with Terraform variable:
+
+```bash
+export TF_VAR_github_token="$(gh auth token)"
+```
+
+Example with provider env token:
+
+```bash
+export GITHUB_TOKEN="$(gh auth token)"
+```
+
+If you want to skip GitHub sync for an apply, set:
+
+```bash
+export TF_VAR_manage_github_actions_settings=false
+```
 
 ## GitHub Actions sync (managed by Terraform)
 
