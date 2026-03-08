@@ -168,5 +168,6 @@ docker-compose.override.yml
 
 # Local secret files
 secrets/
+!secrets/secretManager.ts
 *.pem
 *.key

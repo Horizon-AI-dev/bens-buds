@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
     "@google-cloud/secret-manager": "^6.1.0",
     "discord.js": "^14.19.3",
     "dotenv": "^16.6.1"

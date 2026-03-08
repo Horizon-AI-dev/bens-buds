@@ -1,11 +1,14 @@
 import { Client, Events, GatewayIntentBits, type Message } from "discord.js";
+import { VertexClient } from "./ai/vertexClient.js";
 import { loadConfig } from "./config.js";
 import { handleMentionMessage } from "./discord/messageHandler.js";
 import { loadSystemPrompt } from "./prompts/promptLoader.js";
+import { startHealthServer } from "./server/health.js";
 import { readSecretVersion } from "./secrets/secretManager.js";
 
 const config = loadConfig();
 const systemPrompt = loadSystemPrompt(config.promptFilePath);
+const vertexClient = new VertexClient(config);
 
 async function resolveDiscordToken(): Promise<string> {
   if (config.discordBotToken) {
@@ -35,15 +38,48 @@ client.once(Events.ClientReady, (readyClient: Client<true>) => {
 
 client.on(Events.MessageCreate, async (message: Message<boolean>) => {
   try {
-    await handleMentionMessage(message, client as Client<true>, systemPrompt);
+    await handleMentionMessage(message, client as Client<true>, systemPrompt, ({ systemPrompt, userMessage }) =>
+      vertexClient.generateReply({
+        systemPrompt,
+        userMessage
+      })
+    );
   } catch (error) {
     console.error("[error] Failed to process message", error);
   }
 });
 
+const healthServer = startHealthServer(config.port);
 const token = await resolveDiscordToken();
 
 client.login(token).catch((error: unknown) => {
   console.error("[error] Failed to login to Discord", error);
   process.exit(1);
+});
+
+let shuttingDown = false;
+const shutdown = async (signal: string): Promise<void> => {
+  if (shuttingDown) {
+    return;
+  }
+  shuttingDown = true;
+
+  console.log(`[info] Received ${signal}; shutting down.`);
+
+  try {
+    await healthServer.close();
+  } catch (error) {
+    console.error("[warn] Failed to close health server cleanly", error);
+  }
+
+  client.destroy();
+  process.exit(0);
+};
+
+process.on("SIGTERM", () => {
+  void shutdown("SIGTERM");
+});
+
+process.on("SIGINT", () => {
+  void shutdown("SIGINT");
 });

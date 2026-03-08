@@ -1,26 +1,18 @@
 import type { Client, Message } from "discord.js";
 
-function buildPromptDrivenReply(content: string, systemPrompt: string): string {
-  if (!content) {
-    return [
-      "I can help Ben choose an alt character.",
-      "Tell me preferred role, complexity, and group utility priorities.",
-      `Prompt baseline: ${systemPrompt.split("\n")[0]}`
-    ].join("\n");
-  }
+export type ReplyGenerator = (input: {
+  systemPrompt: string;
+  userMessage: string;
+}) => Promise<string>;
 
-  return [
-    "Ben's Buds focus: choosing Ben's alt character.",
-    `Input: ${content}`,
-    "Next step: share preferred role (DPS/Tank/Support), difficulty, and solo vs group focus.",
-    `Prompt baseline: ${systemPrompt.split("\n")[0]}`
-  ].join("\n");
-}
+const FALLBACK_REPLY =
+  "I hit a temporary issue generating a response. Please try again in a few seconds.";
 
 export async function handleMentionMessage(
   message: Message<boolean>,
   client: Client<true>,
-  systemPrompt: string
+  systemPrompt: string,
+  replyGenerator: ReplyGenerator
 ): Promise<void> {
   if (message.author.bot) {
     return;
@@ -32,5 +24,17 @@ export async function handleMentionMessage(
 
   const mentionPattern = new RegExp(`<@!?${client.user.id}>`, "g");
   const strippedContent = message.content.replace(mentionPattern, "").trim();
-  await message.reply(buildPromptDrivenReply(strippedContent, systemPrompt));
+
+  try {
+    const userMessage =
+      strippedContent || "User mentioned the bot without additional text. Ask a concise clarifying question.";
+    const reply = await replyGenerator({
+      systemPrompt,
+      userMessage
+    });
+    await message.reply(reply);
+  } catch (error) {
+    console.error("[error] Failed to generate reply", error);
+    await message.reply(FALLBACK_REPLY);
+  }
 }
