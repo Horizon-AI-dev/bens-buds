@@ -143,3 +143,30 @@ vite.config.ts.timestamp-*
 
 # Bun lock temporary files
 bun.lockb.tmp
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# GCP local CLI artifacts
+.config/gcloud/
+adc.json
+
+# Docker and container artifacts
+.docker/
+docker-compose.override.yml
+
+# Local secret files
+secrets/
+*.pem
+*.key
