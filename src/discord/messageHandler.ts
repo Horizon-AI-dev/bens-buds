@@ -67,8 +67,7 @@ function formatReplyPromptForCaller(turns: ConversationTurn[], userMessage: stri
   }
 
   return [
-    //"Caller identity: This message is from Ben (Discord ID jelly309).",
-    "Caller identity: This message is from Ben (Discord ID merlinfloyd).",
+    "Caller identity: This message is from Ben (Discord ID jelly309).",
     "Reply directly to Ben and address him by name when natural.",
     "Now that you are speaking to Ben your tone becomes super excited and you really want to discuss his alt choice very enthusiastically!",
     baseContext
