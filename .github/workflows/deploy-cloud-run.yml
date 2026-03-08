@@ -8,13 +8,13 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 env:
   PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   REGION: ${{ vars.GCP_REGION }}
   SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
   REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY }}
+  RUNTIME_SERVICE_ACCOUNT_EMAIL: ${{ vars.RUNTIME_SERVICE_ACCOUNT_EMAIL }}
   IMAGE: bens-buds
 
 jobs:
@@ -28,8 +28,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
 
       - name: Set up gcloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -41,7 +40,7 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: |
           set -euo pipefail
-          required=(PROJECT_ID REGION SERVICE REPOSITORY DISCORD_APPLICATION_ID DISCORD_BOT_TOKEN GCP_SERVICE_ACCOUNT_JSON)
+          required=(PROJECT_ID REGION SERVICE REPOSITORY RUNTIME_SERVICE_ACCOUNT_EMAIL DISCORD_APPLICATION_ID DISCORD_BOT_TOKEN GCP_SERVICE_ACCOUNT_JSON)
           for key in "${required[@]}"; do
             if [[ -z "${!key:-}" ]]; then
               echo "Missing required value: $key"
@@ -95,6 +94,7 @@ jobs:
             --region "${REGION}" \
             --platform managed \
             --image "${IMAGE_URI}" \
+            --service-account "${RUNTIME_SERVICE_ACCOUNT_EMAIL}" \
             --env-vars-file cloudrun.env \
             --quiet
 
