@@ -27,6 +27,10 @@ export function startHealthServer(port: number): HealthServer {
       new Promise<void>((resolve, reject) => {
         server.close((error) => {
           if (error) {
+            if ((error as NodeJS.ErrnoException).code === "ERR_SERVER_NOT_RUNNING") {
+              resolve();
+              return;
+            }
             reject(error);
             return;
           }

@@ -1,6 +1,16 @@
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ override: true });
+
+function readEnv(name: string): string | undefined {
+  const value = process.env[name];
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
 
 export type RuntimeConfig = {
   logLevel: "debug" | "info" | "warn" | "error";
@@ -25,25 +35,25 @@ function getLogLevel(value: string | undefined): RuntimeConfig["logLevel"] {
 }
 
 export function loadConfig(): RuntimeConfig {
-  const parsedPort = Number.parseInt(process.env.PORT ?? "8080", 10);
+  const parsedPort = Number.parseInt(readEnv("PORT") ?? "8080", 10);
   const safePort = Number.isFinite(parsedPort) ? parsedPort : 8080;
 
-  const projectId = process.env.GCP_PROJECT_ID ?? "";
-  const location = process.env.GCP_LOCATION ?? "us-central1";
-  const geminiModel = process.env.GEMINI_MODEL ?? "gemini-3.0-flash";
-  const applicationId = process.env.DISCORD_APPLICATION_ID ?? "";
+  const projectId = readEnv("GCP_PROJECT_ID") ?? "";
+  const location = readEnv("GCP_LOCATION") ?? "us-central1";
+  const geminiModel = readEnv("GEMINI_MODEL") ?? "gemini-3.0-flash";
+  const applicationId = readEnv("DISCORD_APPLICATION_ID") ?? "";
 
   return {
-    logLevel: getLogLevel(process.env.LOG_LEVEL),
-    promptFilePath: process.env.PROMPT_FILE_PATH ?? "prompts/system/alt-character-coach.txt",
+    logLevel: getLogLevel(readEnv("LOG_LEVEL")),
+    promptFilePath: readEnv("PROMPT_FILE_PATH") ?? "prompts/system/alt-character-coach.txt",
     port: safePort,
     gcpProjectId: projectId,
     gcpLocation: location,
     geminiModel,
     discordApplicationId: applicationId,
-    discordBotToken: process.env.DISCORD_BOT_TOKEN ?? null,
-    discordBotTokenSecret: process.env.DISCORD_BOT_TOKEN_SECRET ?? null,
-    gcpServiceAccountJson: process.env.GCP_SERVICE_ACCOUNT_JSON ?? null,
-    gcpServiceAccountJsonSecret: process.env.GCP_SERVICE_ACCOUNT_JSON_SECRET ?? null
+    discordBotToken: readEnv("DISCORD_BOT_TOKEN") ?? null,
+    discordBotTokenSecret: readEnv("DISCORD_BOT_TOKEN_SECRET") ?? null,
+    gcpServiceAccountJson: readEnv("GCP_SERVICE_ACCOUNT_JSON") ?? null,
+    gcpServiceAccountJsonSecret: readEnv("GCP_SERVICE_ACCOUNT_JSON_SECRET") ?? null
   };
 }

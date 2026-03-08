@@ -37,6 +37,7 @@ Pending:
    - You have a bot token available.
 2. Checkpoint B (required before cloud deployment slices):
    - GCP project and billing are set up.
+   - Vertex AI API (`aiplatform.googleapis.com`) is enabled for the project.
    - Secret Manager is ready for runtime secrets.
    - You can grant IAM roles for Cloud Run runtime identity.
 3. Checkpoint C (required before moving to cloud slices):

@@ -1,5 +1,6 @@
 locals {
   required_services = toset([
+    "aiplatform.googleapis.com",
     "run.googleapis.com",
     "artifactregistry.googleapis.com",
     "secretmanager.googleapis.com",
@@ -73,4 +74,12 @@ resource "google_secret_manager_secret_iam_member" "service_account_json_accesso
   secret_id = google_secret_manager_secret.service_account_json.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_project_iam_member" "runtime_vertex_user" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_service_account.runtime.email}"
+
+  depends_on = [google_project_service.required]
 }

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 export function loadSystemPrompt(promptPath: string): string {
-  const absolutePath = resolve(promptPath);
+  const absolutePath = resolve(promptPath.trim());
   const raw = readFileSync(absolutePath, "utf8");
   const normalized = raw.trim();
 

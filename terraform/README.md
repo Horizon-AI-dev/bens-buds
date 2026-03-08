@@ -3,6 +3,7 @@
 This stack provisions baseline infrastructure for Ben's Buds:
 
 - Required GCP APIs.
+- Vertex runtime IAM grant (`roles/aiplatform.user`) for the Cloud Run/runtime service account.
 - Runtime service account for Cloud Run.
 - Runtime service account key (JSON) stored in Secret Manager.
 - Artifact Registry Docker repository.
@@ -17,6 +18,9 @@ GitHub Actions handles build/push/deploy in Slice 7.
 2. Terraform CLI installed locally.
 3. `gcloud auth application-default login` completed.
 4. `gcloud config set project <PROJECT_ID>` completed.
+5. Billing enabled on the project (required by Vertex AI API).
+
+The required API set includes `aiplatform.googleapis.com` (Vertex AI).
 
 If you do not want ADC locally, you can pass an access token instead:
 
