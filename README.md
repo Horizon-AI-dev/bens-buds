@@ -6,7 +6,7 @@ Discord bot for helping Ben choose an alt character.
 
 Completed:
 - Bun + TypeScript Discord bot.
-- Bot only responds to `@mentions`.
+- Bot responds to mentions, direct replies, and likely Ben alt-class topic messages.
 - Vertex AI response generation via Gemini model on Vertex.
 - System prompt is editable at `prompts/system/alt-character-coach.txt`.
 - Runtime Secret Manager token retrieval via `DISCORD_BOT_TOKEN_SECRET`.
@@ -160,5 +160,6 @@ Terraform intentionally does not deploy Cloud Run revisions. GHA handles image b
 ## Validation
 
 - Mention the bot in a channel: it should reply with Gemini output.
-- Send a non-mention message: it should not reply.
+- Reply directly to a bot message: it should continue the conversation.
+- Send a message about Ben's alt class choice (for example, "What alt should Ben play?"): it should reply even without a mention.
 - Hit `GET /healthz`: returns `200` with `{ "status": "ok" }`.

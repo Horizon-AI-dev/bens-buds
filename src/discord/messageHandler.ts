@@ -13,6 +13,18 @@ const DISCORD_MESSAGE_MAX_LENGTH = 2000;
 
 const BEN_DISCORD_ID = "jelly309";
 
+const ALT_CLASS_TOPIC_PATTERNS: RegExp[] = [
+  /\bben\b.*\balt\b/i,
+  /\balt\b.*\bben\b/i,
+  /\balt\s*(class|choice|build|spec|character)\b/i,
+  /\boff\s*spec\b/i,
+  /\bmain\s*(vs|or)\s*alt\b/i,
+  /\bclass\s*(swap|switch|choice)\b/i,
+  /\bshould\s+i\s+play\b/i,
+  /\bwhat\s+alt\s+should\s+i\s+play\b/i,
+  /\btoon\b/i
+];
+
 function isBenCaller(message: Message<boolean>): boolean {
   const { author } = message;
   const normalizedId = author.id.toLowerCase();
@@ -99,7 +111,28 @@ function splitDiscordMessage(content: string, maxLength = DISCORD_MESSAGE_MAX_LE
   return chunks;
 }
 
-export async function handleMentionMessage(
+function isLikelyAltClassTopic(content: string): boolean {
+  const normalizedContent = content.trim();
+  if (normalizedContent.length === 0) {
+    return false;
+  }
+
+  return ALT_CLASS_TOPIC_PATTERNS.some((pattern) => pattern.test(normalizedContent));
+}
+
+function shouldReplyToMessage(message: Message<boolean>, client: Client<true>): boolean {
+  if (message.mentions.has(client.user)) {
+    return true;
+  }
+
+  if (message.mentions.repliedUser?.id === client.user.id) {
+    return true;
+  }
+
+  return isLikelyAltClassTopic(message.content);
+}
+
+export async function handleIncomingMessage(
   message: Message<boolean>,
   client: Client<true>,
   systemPrompt: string,
@@ -110,7 +143,7 @@ export async function handleMentionMessage(
     return;
   }
 
-  if (!message.mentions.has(client.user)) {
+  if (!shouldReplyToMessage(message, client)) {
     return;
   }
 
@@ -120,7 +153,7 @@ export async function handleMentionMessage(
 
   try {
     const userMessage =
-      strippedContent || "User mentioned the bot without additional text. Ask a concise clarifying question.";
+      strippedContent || "User triggered the bot without additional text. Ask a concise clarifying question.";
     const recentTurns = conversationMemory.getRecentTurns(message.channelId);
     const promptUserMessage = formatReplyPromptForCaller(recentTurns, userMessage, callerIsBen);
     const reply = await replyGenerator({

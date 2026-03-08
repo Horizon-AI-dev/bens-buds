@@ -1,7 +1,7 @@
 import { Client, Events, GatewayIntentBits, type Message } from "discord.js";
 import { VertexClient } from "./ai/vertexClient.js";
 import { loadConfig } from "./config.js";
-import { handleMentionMessage } from "./discord/messageHandler.js";
+import { handleIncomingMessage } from "./discord/messageHandler.js";
 import { ConversationMemory } from "./memory/conversationMemory.js";
 import { loadSystemPrompt } from "./prompts/promptLoader.js";
 import { startHealthServer } from "./server/health.js";
@@ -51,7 +51,7 @@ client.once(Events.ClientReady, (readyClient: Client<true>) => {
 
 client.on(Events.MessageCreate, async (message: Message<boolean>) => {
   try {
-    await handleMentionMessage(message, client as Client<true>, systemPrompt, ({ systemPrompt, userMessage }) =>
+    await handleIncomingMessage(message, client as Client<true>, systemPrompt, ({ systemPrompt, userMessage }) =>
       vertexClient.generateReply({
         systemPrompt,
         userMessage
