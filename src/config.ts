@@ -40,7 +40,7 @@ export function loadConfig(): RuntimeConfig {
 
   const projectId = readEnv("GCP_PROJECT_ID") ?? "";
   const location = readEnv("GCP_LOCATION") ?? "us-central1";
-  const geminiModel = readEnv("GEMINI_MODEL") ?? "gemini-3.0-flash";
+  const geminiModel = readEnv("GEMINI_MODEL") ?? "gemini-2.5-flash";
   const applicationId = readEnv("DISCORD_APPLICATION_ID") ?? "";
 
   return {

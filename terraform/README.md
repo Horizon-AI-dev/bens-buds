@@ -3,7 +3,7 @@
 This stack provisions baseline infrastructure for Ben's Buds:
 
 - Required GCP APIs.
-- Vertex runtime IAM grant (`roles/aiplatform.user`) for the Cloud Run/runtime service account.
+- Vertex runtime IAM grants (`roles/aiplatform.user` and `roles/serviceusage.serviceUsageConsumer`) for the Cloud Run/runtime service account.
 - Runtime service account for Cloud Run.
 - Runtime service account key (JSON) stored in Secret Manager.
 - Artifact Registry Docker repository.

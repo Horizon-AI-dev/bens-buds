@@ -123,7 +123,7 @@ docker run --rm -p 8080:8080 \
    -e DISCORD_BOT_TOKEN="<token-for-local-only>" \
    -e GCP_PROJECT_ID="<project-id>" \
    -e GCP_LOCATION="us-central1" \
-   -e GEMINI_MODEL="gemini-3.0-flash" \
+   -e GEMINI_MODEL="gemini-2.5-flash" \
    bens-buds:local
 ```
 

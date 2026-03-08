@@ -83,3 +83,11 @@ resource "google_project_iam_member" "runtime_vertex_user" {
 
   depends_on = [google_project_service.required]
 }
+
+resource "google_project_iam_member" "runtime_service_usage_consumer" {
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageConsumer"
+  member  = "serviceAccount:${google_service_account.runtime.email}"
+
+  depends_on = [google_project_service.required]
+}
