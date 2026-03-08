@@ -2,12 +2,14 @@ import { Client, Events, GatewayIntentBits, type Message } from "discord.js";
 import { VertexClient } from "./ai/vertexClient.js";
 import { loadConfig } from "./config.js";
 import { handleMentionMessage } from "./discord/messageHandler.js";
+import { ConversationMemory } from "./memory/conversationMemory.js";
 import { loadSystemPrompt } from "./prompts/promptLoader.js";
 import { startHealthServer } from "./server/health.js";
 import { readSecretVersion } from "./secrets/secretManager.js";
 
 const config = loadConfig();
 const systemPrompt = loadSystemPrompt(config.promptFilePath);
+const conversationMemory = new ConversationMemory(50);
 
 async function resolveVertexServiceAccountJson(): Promise<string | null> {
   if (config.gcpServiceAccountJson) {
@@ -53,7 +55,8 @@ client.on(Events.MessageCreate, async (message: Message<boolean>) => {
       vertexClient.generateReply({
         systemPrompt,
         userMessage
-      })
+      }),
+      conversationMemory
     );
   } catch (error) {
     console.error("[error] Failed to process message", error);
